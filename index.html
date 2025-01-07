@@ -211,7 +211,7 @@
             handleAnswer(selectedOption) {
                 const question = this.questions[this.currentQuestion];
                 const isCorrect = question.correctAnswer === selectedOption;
-
+            
                 this.answers[this.currentQuestion] = selectedOption;
                 this.detailedResults.push({
                     questionNumber: this.currentQuestion + 1,
@@ -220,14 +220,31 @@
                     correctAnswer: question.options[question.correctAnswer],
                     isCorrect: isCorrect
                 });
-
-                if (this.currentQuestion < this.questions.length - 1) {
-                    this.currentQuestion++;
-                    this.render();
-                } else {
-                    this.showResults();
-                }
+            
+                // Обновляем текущий вопрос с отображением результата
+                const buttons = document.querySelectorAll('.button');
+                buttons.forEach((button, index) => {
+                    button.disabled = true; // Делаем кнопки неактивными после выбора ответа
+                    if (index === question.correctAnswer) {
+                        button.innerHTML += ' ✅'; // Добавляем галочку к правильному ответу
+                        button.style.backgroundColor = '#4CAF50'; // Зеленый фон для правильного ответа
+                    } else if (index === selectedOption) {
+                        button.innerHTML += ' ❌'; // Добавляем крестик к неправильному выбранному ответу
+                        button.style.backgroundColor = '#FF6B6B'; // Красный фон для неправильного ответа
+                    }
+                });
+            
+                // Переход к следующему вопросу через 1.5 секунды
+                setTimeout(() => {
+                    if (this.currentQuestion < this.questions.length - 1) {
+                        this.currentQuestion++;
+                        this.render();
+                    } else {
+                        this.showResults();
+                    }
+                }, 1500);
             }
+
 
             showResults() {
                 this.testStarted = false;
