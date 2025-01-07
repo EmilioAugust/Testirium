@@ -267,42 +267,44 @@
             }
 
             render() {
-                if (!this.questions.length) {
+                    if (!this.questions.length) {
+                        this.app.innerHTML = `
+                            <h2 class="card-title">Загрузка теста</h2>
+                            <div class="file-upload">
+                                <p>Загрузите Excel файл с вопросами</p>
+                                <br>
+                                <input type="file" accept=".xlsx,.xls" onchange="testApp.handleFileUpload(event)">
+                            </div>
+                        `;
+                        return;
+                    }
+                
+                    if (!this.testStarted) {
+                        this.app.innerHTML = `
+                            <h2 class="card-title">Система тестирования</h2>
+                            <p>Тест состоит из 40 вопросов</p>
+                            <p>Проходной балл: ${this.passingScore}%</p>
+                            <button class="button" onclick="testApp.startTest()">Начать тест</button>
+                        `;
+                        return;
+                    }
+                
+                    const question = this.questions[this.currentQuestion];
+                    const progress = ((this.currentQuestion + 1) / this.questions.length) * 100;
+                
+    
                     this.app.innerHTML = `
-                        <h2 class="card-title">Загрузка теста</h2>
-                        <div class="file-upload">
-                            <p>Загрузите Excel файл с вопросами</p>
-                            <br>
-                            <input type="file" accept=".xlsx,.xls" onchange="testApp.handleFileUpload(event)">
+                        <h2 class="card-title">Вопрос ${this.currentQuestion + 1} из ${this.questions.length}</h2>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
                         </div>
+                        <p class="question-text">${question.text}</p>
+                        ${question.options.map((option, index) => 
+                            option ? `<button class="button" onclick="testApp.handleAnswer(${index})">${option}</button>` : ''
+                        ).join('')}
                     `;
-                    return;
                 }
 
-                if (!this.testStarted) {
-                    this.app.innerHTML = `
-                        <h2 class="card-title">Система тестирования</h2>
-                        <p>Тест состоит из 40 вопросов</p>
-                        <p>Проходной балл: ${this.passingScore}%</p>
-                        <button class="button" onclick="testApp.startTest()">Начать тест</button>
-                    `;
-                    return;
-                }
-
-                const question = this.questions[this.currentQuestion];
-                const progress = ((this.currentQuestion + 1) / this.questions.length) * 100;
-
-                this.app.innerHTML = `
-                    <h2 class="card-title">Вопрос ${this.currentQuestion + 1} из ${this.questions.length}</h2>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${progress}%"></div>
-                    </div>
-                    <p class="question-text">${question.text}</p>
-                    ${question.options.map((option, index) => `
-                        <button class="button" onclick="testApp.handleAnswer(${index})">${option}</button>
-                    `).join('')}
-                `;
-            }
 
             renderResults() {
                 const results = this.calculateResults();
