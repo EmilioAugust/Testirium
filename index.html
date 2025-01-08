@@ -308,7 +308,7 @@
 
             renderResults() {
                 const results = this.calculateResults();
-
+            
                 this.app.innerHTML = `
                     <h2 class="card-title">Результаты тестирования</h2>
                     <div class="results-summary">
@@ -339,9 +339,10 @@
                             `).join('')}
                         </tbody>
                     </table>
-                    <button class="button" onclick="location.reload()">Начать заново</button>
+                    <button class="button" onclick="testApp.startTest()">Начать заново</button>
                 `;
             }
+
         }
 
         const testApp = new TestApp();
