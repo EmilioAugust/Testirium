@@ -177,9 +177,10 @@
                         this.questions = jsonData.map((row, index) => ({
                             id: index + 1,
                             text: row.question,
-                            options: [row.option1, row.option2, row.option3, row.option4],
+                            options: [row.option1, row.option2, row.option3, row.option4, row.option5].filter(option => option),
                             correctAnswer: parseInt(row.correct_answer) - 1
                         }));
+
 
                         this.render();
                     } catch (error) {
