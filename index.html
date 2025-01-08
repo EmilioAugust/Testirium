@@ -2,347 +2,114 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Система тестирования</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .card-title {
-            font-size: 24px;
-            color: #1a1a1a;
-            margin-bottom: 20px;
             text-align: center;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background-color: #e0e0e0;
-            border-radius: 5px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-        .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #4CAF50, #81C784);
-    transition: width 0.3s ease;
-}
-        .button {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    border: none;
-    border-radius: 6px;
-    background-color: #7e7e7e;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
-}
-
-.button:hover {
-    background-color: #1557b0;
-    transform: scale(1.05);
-}
-        .button:hover {
-            background-color: #1557b0;
-        }
-        .button.outline {
-            background-color: white;
-            border: 2px solid #1a73e8;
-            color: #1a73e8;
-        }
-        .file-upload {
-            margin: 20px 0;
-            padding: 20px;
-            border: 2px dashed #1a73e8;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .question-text {
-            font-size: 18px;
-            margin: 20px 0;
-            color: #333;
-        }
-        .results-summary {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-        .results-table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-        .results-table th,
-        .results-table td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        .results-table th {
-            background-color: #f5f5f5;
-        }
-        .results-table tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-
-        @media (max-width: 768px) {
-            .card {
-                width: 100%; /* Растягиваем карточку на всю ширину */
-                padding: 15px;
-            }
-
-            .card-title {
-                font-size: 1.2em; /* Уменьшаем размер заголовка */
-            }
-
-            .question-text {
-                font-size: 1em; /* Уменьшаем размер текста вопроса */
-            }
-
-            .button {
-                font-size: 0.9em; /* Уменьшаем размер кнопки */
-                padding: 10px;
-            }
-}
-
+        .card {
+            width: 50%;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .button {
+            background-color: gray;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: darkgray;
+        }
     </style>
 </head>
 <body>
-    <div id="app" class="card"></div>
+    <div id="app" class="card">
+        <!-- Контент будет динамически изменяться -->
+    </div>
 
     <script>
         class TestApp {
-    addTransitionEffect() {
-        const appContainer = document.getElementById('app');
-        appContainer.style.transition = 'opacity 0.5s ease';
-        appContainer.style.opacity = '0';
-        setTimeout(() => {
-            appContainer.style.opacity = '1';
-        }, 500);
-    }
             constructor() {
-                this.questions = [];
-                this.currentQuestion = 0;
-                this.answers = {};
-                this.testStarted = false;
                 this.app = document.getElementById('app');
-                this.passingScore = 50;
-                this.detailedResults = [];
-
-                this.render();
+                this.testStarted = false; // Флаг, указывающий, начат ли тест
+                this.currentQuestion = 0; // Индекс текущего вопроса
+                this.questions = [
+                    { question: "Какой цвет у неба?", options: ["Синий", "Зеленый", "Красный"], correct: 0 },
+                    { question: "Сколько дней в неделе?", options: ["5", "7", "10"], correct: 1 },
+                    { question: "Что такое H2O?", options: ["Вода", "Кислород", "Сахар"], correct: 0 }
+                ];
+                this.answers = {}; // Хранение ответов пользователя
+                this.renderStartScreen();
             }
 
-            handleFileUpload(event) {
-                const file = event.target.files[0];
-                if (!file) {
-                    alert("Файл не выбран");
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-                        this.questions = jsonData.map((row, index) => ({
-                            id: index + 1,
-                            text: row.question,
-                            options: [row.option1, row.option2, row.option3, row.option4],
-                            correctAnswer: parseInt(row.correct_answer) - 1
-                        }));
-
-                        this.render();
-                    } catch (error) {
-                        alert("Ошибка при чтении файла. Проверьте формат.");
-                    }
-                };
-
-                reader.readAsArrayBuffer(file);
+            // Метод для отображения стартового экрана
+            renderStartScreen() {
+                this.app.innerHTML = `
+                    <h1>Система тестирования</h1>
+                    <p>Тест состоит из ${this.questions.length} вопросов</p>
+                    <p>Проходной балл: 50%</p>
+                    <button class="button" onclick="testApp.startTest()">Начать тест</button>
+                `;
             }
 
+            // Метод для начала теста
             startTest() {
                 this.testStarted = true;
                 this.currentQuestion = 0;
                 this.answers = {};
-                this.detailedResults = [];
-                this.shuffleQuestions();
-                this.render();
+                this.renderQuestion();
             }
 
-            shuffleQuestions() {
-                for (let i = this.questions.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [this.questions[i], this.questions[j]] = [this.questions[j], this.questions[i]];
-                }
-                this.questions = this.questions.slice(0, 40); // Берем только первые 40 вопросов после перемешивания
-            }
-
-
-            handleAnswer(selectedOption) {
+            // Метод для отображения текущего вопроса
+            renderQuestion() {
                 const question = this.questions[this.currentQuestion];
-                const isCorrect = question.correctAnswer === selectedOption;
-            
-                this.answers[this.currentQuestion] = selectedOption;
-                this.detailedResults.push({
-                    questionNumber: this.currentQuestion + 1,
-                    question: question.text,
-                    yourAnswer: question.options[selectedOption],
-                    correctAnswer: question.options[question.correctAnswer],
-                    isCorrect: isCorrect
-                });
-            
-                // Обновляем текущий вопрос с отображением результата
-                const buttons = document.querySelectorAll('.button');
-                buttons.forEach((button, index) => {
-                    button.disabled = true; // Делаем кнопки неактивными после выбора ответа
-                    if (index === question.correctAnswer) {
-                        button.innerHTML += ' ✅'; // Добавляем галочку к правильному ответу
-                        button.style.backgroundColor = '#4CAF50'; // Зеленый фон для правильного ответа
-                    } else if (index === selectedOption) {
-                        button.innerHTML += ' ❌'; // Добавляем крестик к неправильному выбранному ответу
-                        button.style.backgroundColor = '#FF6B6B'; // Красный фон для неправильного ответа
-                    }
-                });
-            
-                // Переход к следующему вопросу через 1.5 секунды
-                setTimeout(() => {
-                    if (this.currentQuestion < this.questions.length - 1) {
-                        this.currentQuestion++;
-                        this.render();
-                    } else {
-                        this.showResults();
-                    }
-                }, 1500);
-            }
-
-
-            showResults() {
-                this.testStarted = false;
-                this.renderResults();
-            }
-
-            calculateResults() {
-                const correctAnswers = Object.values(this.answers).filter((answer, index) =>
-                    this.questions[index].correctAnswer === answer
-                ).length;
-
-                const percentage = (correctAnswers / this.questions.length) * 100;
-
-                return {
-                    score: percentage.toFixed(1),
-                    passed: percentage >= this.passingScore,
-                    correctCount: correctAnswers,
-                    incorrectCount: this.questions.length - correctAnswers
-                };
-            }
-
-            render() {
-                    if (!this.questions.length) {
-                        this.app.innerHTML = `
-                            <h2 class="card-title">Загрузка теста</h2>
-                            <div class="file-upload">
-                                <p>Загрузите Excel файл с вопросами</p>
-                                <br>
-                                <input type="file" accept=".xlsx,.xls" onchange="testApp.handleFileUpload(event)">
-                            </div>
-                        `;
-                        return;
-                    }
-                
-                    if (!this.testStarted) {
-                        this.app.innerHTML = `
-                            <h2 class="card-title">Система тестирования</h2>
-                            <p>Тест состоит из 40 вопросов</p>
-                            <p>Проходной балл: ${this.passingScore}%</p>
-                            <button class="button" onclick="testApp.startTest()">Начать тест</button>
-                        `;
-                        return;
-                    }
-                
-                    const question = this.questions[this.currentQuestion];
-                    const progress = ((this.currentQuestion + 1) / this.questions.length) * 100;
-                
-    
-                    this.app.innerHTML = `
-                        <h2 class="card-title">Вопрос ${this.currentQuestion + 1} из ${this.questions.length}</h2>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${progress}%"></div>
-                        </div>
-                        <p class="question-text">${question.text}</p>
-                        ${question.options.map((option, index) => 
-                            option ? `<button class="button" onclick="testApp.handleAnswer(${index})">${option}</button>` : ''
-                        ).join('')}
-                    `;
-                }
-
-
-            renderResults() {
-                const results = this.calculateResults();
-            
                 this.app.innerHTML = `
-                    <h2 class="card-title">Результаты тестирования</h2>
-                    <div class="results-summary">
-                        <p>Ваш результат: <strong>${results.score}%</strong></p>
-                        <p>${results.passed ? 'Тест успешно пройден!' : 'Тест не пройден.'}</p>
-                        <p>Правильных ответов: ${results.correctCount}</p>
-                        <p>Неправильных ответов: ${results.incorrectCount}</p>
-                    </div>
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                <th>№</th>
-                                <th>Вопрос</th>
-                                <th>Ваш ответ</th>
-                                <th>Правильный ответ</th>
-                                <th>Результат</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${this.detailedResults.map(result => `
-                                <tr>
-                                    <td>${result.questionNumber}</td>
-                                    <td>${result.question}</td>
-                                    <td>${result.yourAnswer}</td>
-                                    <td>${result.correctAnswer}</td>
-                                    <td>${result.isCorrect ? '✅' : '❌'}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    <button class="button" onclick="testApp.startTest()">Начать заново</button>
+                    <h2>Вопрос ${this.currentQuestion + 1} из ${this.questions.length}</h2>
+                    <p>${question.question}</p>
+                    ${question.options.map((option, index) => `
+                        <button class="button" onclick="testApp.submitAnswer(${index})">${option}</button>
+                    `).join('')}
                 `;
             }
 
+            // Метод для обработки ответа пользователя
+            submitAnswer(answerIndex) {
+                this.answers[this.currentQuestion] = answerIndex;
+                if (this.currentQuestion < this.questions.length - 1) {
+                    this.currentQuestion++;
+                    this.renderQuestion();
+                } else {
+                    this.renderResults();
+                }
+            }
+
+            // Метод для отображения результатов
+            renderResults() {
+                const correctAnswers = Object.keys(this.answers).filter(index => {
+                    return this.answers[index] === this.questions[index].correct;
+                }).length;
+
+                const score = Math.round((correctAnswers / this.questions.length) * 100);
+                const passed = score >= 50;
+
+                this.app.innerHTML = `
+                    <h2>Результаты тестирования</h2>
+                    <p>Ваш результат: <strong>${score}%</strong></p>
+                    <p>${passed ? "Тест успешно пройден!" : "Тест не пройден."}</p>
+                    <p>Правильных ответов: ${correctAnswers} из ${this.questions.length}</p>
+                    <button class="button" onclick="testApp.renderStartScreen()">Начать заново</button>
+                `;
+            }
         }
 
         const testApp = new TestApp();
