@@ -211,39 +211,37 @@
 
             handleAnswer(selectedOption) {
                 const question = this.questions[this.currentQuestion];
-                const isCorrect = question.correctAnswer === selectedOption;
-            
-                this.answers[this.currentQuestion] = selectedOption;
+                const selectedAnswers = this.answers[this.currentQuestion] || [];
+
+                if (selectedAnswers.includes(selectedOption)) {
+                    this.answers[this.currentQuestion] = selectedAnswers.filter(opt => opt !== selectedOption);
+                } else {
+                    this.answers[this.currentQuestion] = [...selectedAnswers, selectedOption];
+                }
+
+                this.render();
+            }
+
+            submitAnswer() {
+                const question = this.questions[this.currentQuestion];
+                const selectedAnswers = this.answers[this.currentQuestion] || [];
+                const isCorrect = question.correctAnswers.every(ans => selectedAnswers.includes(ans)) &&
+                                  question.correctAnswers.length === selectedAnswers.length;
+
                 this.detailedResults.push({
                     questionNumber: this.currentQuestion + 1,
                     question: question.text,
-                    yourAnswer: question.options[selectedOption],
-                    correctAnswer: question.options[question.correctAnswer],
+                    yourAnswers: selectedAnswers.map(ans => question.options[ans]).join(', '),
+                    correctAnswers: question.correctAnswers.map(ans => question.options[ans]).join(', '),
                     isCorrect: isCorrect
                 });
-            
-                // Обновляем текущий вопрос с отображением результата
-                const buttons = document.querySelectorAll('.button');
-                buttons.forEach((button, index) => {
-                    button.disabled = true; // Делаем кнопки неактивными после выбора ответа
-                    if (index === question.correctAnswer) {
-                        button.innerHTML += ' ✅'; // Добавляем галочку к правильному ответу
-                        button.style.backgroundColor = '#4CAF50'; // Зеленый фон для правильного ответа
-                    } else if (index === selectedOption) {
-                        button.innerHTML += ' ❌'; // Добавляем крестик к неправильному выбранному ответу
-                        button.style.backgroundColor = '#FF6B6B'; // Красный фон для неправильного ответа
-                    }
-                });
-            
-                // Переход к следующему вопросу через 1.5 секунды
-                setTimeout(() => {
-                    if (this.currentQuestion < this.questions.length - 1) {
-                        this.currentQuestion++;
-                        this.render();
-                    } else {
-                        this.showResults();
-                    }
-                }, 1500);
+
+                if (this.currentQuestion < this.questions.length - 1) {
+                    this.currentQuestion++;
+                    this.render();
+                } else {
+                    this.showResults();
+                }
             }
 
 
@@ -295,16 +293,21 @@
                 
     
                     this.app.innerHTML = `
-                        <h2 class="card-title">Вопрос ${this.currentQuestion + 1} из ${this.questions.length}</h2>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${progress}%"></div>
-                        </div>
-                        <p class="question-text">${question.text}</p>
-                        ${question.options.map((option, index) => 
-                            option ? `<button class="button" onclick="testApp.handleAnswer(${index})">${option}</button>` : ''
-                        ).join('')}
-                    `;
-                }
+                    <h2 class="card-title">Вопрос ${this.currentQuestion + 1} из ${this.questions.length}</h2>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <p class="question-text">${question.text}</p>
+                    <p><strong>${question.correctAnswers.length > 1 ? 'Можно выбрать несколько ответов' : 'Выберите один ответ'}</strong></p>
+                    ${question.options.map((option, index) => `
+                        <button class="button ${this.answers[this.currentQuestion]?.includes(index) ? 'selected' : ''}" 
+                                onclick="testApp.handleAnswer(${index})">
+                            ${option}
+                        </button>
+                    `).join('')}
+                    <button class="button outline" onclick="testApp.submitAnswer()">Подтвердить</button>
+                `;
+            }
 
 
             renderResults() {
