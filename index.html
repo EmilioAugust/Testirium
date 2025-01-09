@@ -326,6 +326,36 @@
 
             renderResults() {
                 const results = this.calculateResults();
+
+                let detailedResultsHTML = `
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>№</th>
+                                <th>Вопрос</th>
+                                <th>Ваш ответ</th>
+                                <th>Правильный ответ</th>
+                                <th>Результат</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+            
+                this.detailedResults.forEach(result => {
+                    detailedResultsHTML += `
+                        <tr>
+                            <td>${result.questionNumber}</td>
+                            <td>${result.question}</td>
+                            <td>${result.yourAnswer || 'Не отвечено'}</td>
+                            <td>${result.correctAnswer}</td>
+                            <td style="color: ${result.isCorrect ? 'green' : 'red'};">
+                                ${result.isCorrect ? 'Правильно' : 'Неправильно'}
+                            </td>
+                        </tr>
+                    `;
+                });
+            
+                detailedResultsHTML += `</tbody></table>`;
             
                 this.app.innerHTML = `
                     <h2 class="card-title">Результаты тестирования</h2>
