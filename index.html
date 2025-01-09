@@ -326,7 +326,7 @@
 
             renderResults() {
                 const results = this.calculateResults();
-
+            
                 let detailedResultsHTML = `
                     <table class="results-table">
                         <thead>
@@ -365,9 +365,11 @@
                         <p>Правильных ответов: ${results.correctCount}</p>
                         <p>Неправильных ответов: ${results.incorrectCount}</p>
                     </div>
+                    ${detailedResultsHTML}
                     <button class="button" onclick="testApp.restartTest()">Начать заново</button>
                 `;
             }
+
         }
 
         const testApp = new TestApp();
