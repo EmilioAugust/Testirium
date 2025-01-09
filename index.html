@@ -211,6 +211,16 @@
                 this.render();
             }
 
+            restartTest() {
+                this.questions = []; // Сбрасываем вопросы
+                this.currentQuestion = 0; // Обнуляем текущий вопрос
+                this.answers = {}; // Очищаем ответы
+                this.testStarted = false; // Сбрасываем состояние теста
+                this.detailedResults = []; // Очищаем детальные результаты
+                this.render(); // Перерисовываем интерфейс
+            }
+
+
             shuffleQuestions() {
                 for (let i = this.questions.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -316,7 +326,7 @@
 
             renderResults() {
                 const results = this.calculateResults();
-
+            
                 this.app.innerHTML = `
                     <h2 class="card-title">Результаты тестирования</h2>
                     <div class="results-summary">
@@ -325,7 +335,7 @@
                         <p>Правильных ответов: ${results.correctCount}</p>
                         <p>Неправильных ответов: ${results.incorrectCount}</p>
                     </div>
-                    <button class="button" onclick="testApp.startTest()">Начать заново</button>
+                    <button class="button" onclick="testApp.restartTest()">Начать заново</button>
                 `;
             }
         }
