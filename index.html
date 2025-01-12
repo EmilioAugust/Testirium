@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Система тестирования</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -15,20 +16,36 @@
             background-color: #f0f2f5;
             padding: 20px;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: 
+                radial-gradient(rgba(26, 115, 232, 0.1) 1px, transparent 2.5px),
+                radial-gradient(rgba(26, 115, 232, 0.1) 1px, transparent 2.5px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            background-attachment: fixed;
+            animation: backgroundAnimation 150s linear infinite;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
         .card {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+            max-width: 900px;
+            width: 100%;
+            margin: 20px auto;
+            padding: 30px;
+            transition: all 0.5s ease;
+            position: relative;
+            transform: translateY(-30px);
         }
         .card-title {
-            font-size: 24px;
-            color: #1a1a1a;
+            font-size: 1.5em;
             margin-bottom: 20px;
+            color: #333;
             text-align: center;
+            transition: all 0.5s ease;
         }
         .progress-bar {
             width: 100%;
@@ -37,6 +54,7 @@
             border-radius: 5px;
             margin: 20px 0;
             overflow: hidden;
+            transition: all 0.5s ease;
         }
         .progress-fill {
     height: 100%;
@@ -132,22 +150,852 @@
             }
 }
 
+        /* Dark theme styles */
+        body.dark {
+            background-color: #121212;
+            color: #e0e0e0;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+            background-size: 
+                550px 550px,
+                350px 350px,
+                250px 250px;
+            background-position: 
+                0 0,
+                40px 60px,
+                130px 270px;
+            animation: starsAnimation 200s linear infinite;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+        .card.dark {
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+        .card-title.dark, 
+        #questionCard .card-title.dark {
+            color: #ffffff !important;
+}
+        .button.dark {
+            background-color: #333;
+            color: #e0e0e0;
+        }
+        .button.dark:hover {
+            background-color: #555;
+        }
+        .progress-bar.dark {
+            background-color: #333;
+        }
+        .progress-fill.dark {
+            background: linear-gradient(90deg, #76ff03, #64dd17);
+        }
+        .results-summary.dark {
+            background-color: #1e1e1e;
+        }
+        .results-table.dark th {
+            background-color: #333;
+        }
+        .results-table.dark tr:nth-child(even) {
+            background-color: #2c2c2c;
+        }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #1a73e8;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            color: white;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-toggle.dark {
+            background: #76ff03;
+            color: #1e1e1e;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(-10px) rotate(-180deg);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+
+        .card .card-title.dark {
+            color: #ffffff !important;
+        }
+
+        /* Make question text white in dark theme */
+        .question-text.dark {
+            color: #ffffff !important;
+        }
+
+        /* Make all paragraph text white in dark theme */
+        .card.dark p {
+            color: #ffffff !important;
+        }
+
+        /* Make label text white in dark theme */
+        .card.dark label {
+            color: #ffffff !important;
+        }
+
+        /* Style for test info text */
+        .test-info {
+            font-size: 1.2em;
+            margin: 15px 0;
+            padding: 10px;
+            border-left: 4px solid #1a73e8;
+            background-color: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .test-info.dark {
+            background-color: #2d2d2d;
+            border-left-color: #76ff03;
+            color: #ffffff;
+        }
+
+        .question-input-group {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .question-input-group.dark {
+            background-color: #2d2d2d;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .question-input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .question-input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #1a73e8;
+            border-radius: 4px;
+            font-size: 1.1em;
+            background-color: white;
+        }
+
+        .question-input-group.dark input {
+            background-color: #1e1e1e;
+            border-color: #76ff03;
+            color: white;
+        }
+
+        /* Make all text in dark theme visible */
+        .card.dark .test-info p,
+        .card.dark .question-input-group label {
+            color: #ffffff !important;
+        }
+
+        /* Style the results table */
+        .results-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .results-table th {
+            background-color: #f5f5f5;
+        }
+
+        .results-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Dark theme styles for table */
+        .results-table.dark {
+            border-color: #444;
+            color: #ffffff;
+        }
+
+        .results-table.dark th,
+        .results-table.dark td {
+            border-color: #444;
+            color: #ffffff;
+        }
+
+        .results-table.dark th {
+            background-color: #333;
+        }
+
+        .results-table.dark tr:nth-child(even) {
+            background-color: #2c2c2c;
+        }
+
+        .results-table.dark tr:nth-child(odd) {
+            background-color: #1e1e1e;
+        }
+
+        /* Dark theme styles for file-upload */
+        .file-upload.dark {
+            border-color: #64dd17;
+        }
+
+        .card > div {
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .card > div.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Стили для таймера на странице настройки */
+        #setupCard .timer-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            box-shadow: 5px 5px 10px #d9d9d9, -5px -5px 10px #ffffff;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        #setupCard .timer-container.dark {
+            background: linear-gradient(145deg, #2d2d2d, #1e1e1e);
+            box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5), -5px -5px 10px rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        /* Стили для таймера во время теста */
+        #questionCard .timer-container {
+            text-align: center;
+            margin: 10px 0;
+            padding: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            box-shadow: none;
+        }
+
+        #questionCard .timer-container.dark {
+            background: rgba(0, 0, 0, 0.2);
+            color: #ffffff;
+        }
+
+        #questionCard .timer {
+            font-size: 1.8em;
+        }
+
+        #questionCard .timer-label {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        /* Общие стили для таймера */
+        .timer {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #1a73e8;
+            font-family: 'Courier New', monospace;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer.dark {
+            color: #76ff03;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .timer-label {
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .timer-label.dark {
+            color: #d8d8d8;
+        }
+
+        .timer-warning {
+            color: #ff5722 !important;
+            animation: pulse 1s infinite;
+        }
+
+        .timer-warning.dark {
+            color: #ff5722 !important;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .results-summary p {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+
+        .results-summary strong {
+            color: #1a73e8;
+        }
+
+        .results-summary.dark strong {
+            color: #76ff03;
+        }
+
+        .card-title.dark {
+            color: #ffffff;
+        }
+
+        @keyframes glowing {
+            0% {
+                box-shadow: 0 0 5px #1a73e8,
+                            0 0 10px #1a73e8,
+                            0 0 15px #1a73e8;
+            }
+            50% {
+                box-shadow: 0 0 20px #1a73e8,
+                            0 0 35px #1a73e8,
+                            0 0 50px #1a73e8;
+            }
+            100% {
+                box-shadow: 0 0 5px #1a73e8,
+                            0 0 10px #1a73e8,
+                            0 0 15px #1a73e8;
+            }
+        }
+
+        @keyframes glowing-dark {
+            0% {
+                box-shadow: 0 0 5px #76ff03,
+                            0 0 10px #76ff03,
+                            0 0 15px #76ff03;
+            }
+            50% {
+                box-shadow: 0 0 20px #76ff03,
+                            0 0 35px #76ff03,
+                            0 0 50px #76ff03;
+            }
+            100% {
+                box-shadow: 0 0 5px #76ff03,
+                            0 0 10px #76ff03,
+                            0 0 15px #76ff03;
+            }
+        }
+
+        #resultsCard {
+            position: relative;
+            z-index: 1;
+        }
+
+        #resultsCard.dark {
+            animation: glowing-dark 2s infinite !important;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        #app.card {
+            position: relative;
+            z-index: 2;
+            background: #fff;
+        }
+
+        #app.card.dark {
+            background: #1e1e1e;
+        }
+
+        #app.card.success {
+            animation: glowing 2s ease-in-out infinite;
+            transform-origin: center center;
+        }
+
+        #app.card.dark.success {
+            animation: glowing-dark 2s ease-in-out infinite !important;
+            transform-origin: center center;
+        }
+
+        @keyframes backgroundAnimation {
+            from { background-position: 0 0, 20px 20px; }
+            to { background-position: 1000px 0, 1020px 20px; }
+        }
+
+        @keyframes starsAnimation {
+            from { background-position: 0 0, 40px 60px, 130px 270px; }
+            to { background-position: 550px 550px, 590px 610px, 680px 820px; }
+        }
+
+        /* Общие transition стили для всех элементов, которые меняются при смене темы */
+        .card,
+        .card-title,
+        .button,
+        .progress-bar,
+        .progress-fill,
+        .results-summary,
+        .test-info,
+        .question-input-group,
+        .question-text,
+        .timer-container,
+        .timer,
+        .timer-label,
+        .file-upload,
+        .results-table,
+        .results-table th,
+        .results-table td,
+        .theme-toggle {
+            transition: all 0.5s ease;
+        }
+
+        /* Специальные transition стили для фона и теней */
+        .timer-container {
+            transition: background 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        .theme-toggle {
+            transition: background-color 0.5s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Обновляем стили для темной темы с transition */
+        body.dark {
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        .card.dark,
+        .results-summary.dark,
+        .question-input-group.dark,
+        .timer-container.dark {
+            transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        /* Стили для контейнера кнопки и подсказки */
+        .theme-toggle-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+        }
+
+        /* Стили для подсказки */
+        .theme-tooltip {
+            position: absolute;
+            left: 60px;
+            top: 100%;
+            transform: none;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        /* Стрелка для подсказки */
+        .theme-tooltip::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 6px 6px 6px 0;
+            border-style: solid;
+            border-color: transparent rgba(0, 0, 0, 0.8) transparent transparent;
+        }
+
+        /* Показываем подсказку при наведении */
+        .theme-toggle-container:hover .theme-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Стили для темной темы */
+        .theme-tooltip.dark {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: black;
+        }
+
+        .theme-tooltip.dark::before {
+            border-color: transparent rgba(255, 255, 255, 0.9) transparent transparent;
+        }
+
+        /* Анимация для карточек */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Анимация для кнопок */
+        @keyframes buttonPop {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Анимация для достижений */
+        @keyframes achievementSlide {
+            0% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            15% {
+                transform: translateX(-20px);
+                opacity: 1;
+            }
+            85% {
+                transform: translateX(-20px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Анимация для переключения темы */
+        @keyframes themeSwitch {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Применение анимаций */
+        .card > div {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .button:hover {
+            animation: buttonPop 0.3s ease-in-out;
+        }
+
+        .achievement-notification {
+            animation: achievementSlide 4s ease-in-out;
+        }
+
+        .theme-toggle:hover {
+            animation: themeSwitch 0.5s ease-in-out;
+        }
+
+        /* Обновленная анимация свечения для светлой темы */
+        @keyframes glowing {
+            0% {
+                box-shadow: 0 0 5px #1a73e8,
+                            0 0 10px #1a73e8,
+                            0 0 15px #1a73e8;
+            }
+            50% {
+                box-shadow: 0 0 20px #1a73e8,
+                            0 0 35px #1a73e8,
+                            0 0 50px #1a73e8;
+            }
+            100% {
+                box-shadow: 0 0 5px #1a73e8,
+                            0 0 10px #1a73e8,
+                            0 0 15px #1a73e8;
+            }
+        }
+
+        /* Обновленная анимация свечения для темной темы */
+        @keyframes glowing-dark {
+            0% {
+                box-shadow: 0 0 5px #76ff03,
+                            0 0 10px #76ff03,
+                            0 0 15px #76ff03;
+            }
+            50% {
+                box-shadow: 0 0 20px #76ff03,
+                            0 0 35px #76ff03,
+                            0 0 50px #76ff03;
+            }
+            100% {
+                box-shadow: 0 0 5px #76ff03,
+                            0 0 10px #76ff03,
+                            0 0 15px #76ff03;
+            }
+        }
+
+        #app.card.success {
+            animation: glowing 2s ease-in-out infinite;
+        }
+
+        #app.card.dark.success {
+            animation: glowing-dark 2s ease-in-out infinite !important;
+        }
+
+        /* Анимация для карточек */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Применение анимаций */
+        .card > div {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Убираем анимацию для карточки результатов */
+        #resultsCard {
+            animation: none;
+        }
+
+        /* Стили для таблицы результатов */
+        .results-summary {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .results-table {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.2s forwards;
+        }
+
+        /* Стили для контейнера переключателя */
+        .timer-switch {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .timer-switch.dark {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Стили для переключателя */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+            margin: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* Стили для слайдера */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e0e0e0;
+            transition: .4s;
+            border-radius: 34px;
+            box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Активное состояние */
+        input:checked + .slider {
+            background-color: #1a73e8;
+        }
+
+        .dark input:checked + .slider {
+            background-color: #76ff03;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Эффект при наведении */
+        .switch:hover .slider:before {
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Стили для текста рядом с переключателем */
+        .timer-switch .timer-label {
+            font-size: 1em;
+            color: #333333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            margin: 0;
+            padding: 0;
+            line-height: 28px;
+            position: relative;
+            top: 1px;
+        }
+
+        /* Белый цвет для темной темы */
+        .timer-switch.dark .timer-label {
+            color: #ffffff;
+        }
+
+        /* Анимация при переключении */
+        .slider:before {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Эффект нажатия */
+        .switch:active .slider:before {
+            width: 24px;
+        }
+
+        /* Контейнер для выравнивания */
+        .timer-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
     </style>
 </head>
 <body>
-    <div id="app" class="card"></div>
+    <div class="theme-toggle-container">
+        <button class="theme-toggle" onclick="testApp.toggleTheme()">🌙</button>
+        <span class="theme-tooltip">Переключить тему</span>
+    </div>
+    <div id="app" class="card">
+        <!-- Карточка загрузки файла и выбора количества вопросов -->
+        <div id="setupCard">
+            <h2 class="card-title">Загрузка теста</h2>
+            <div class="file-upload">
+                <p>Загрузите Excel файл с вопросами</p>
+                <br>
+                <input type="file" accept=".xlsx,.xls" onchange="testApp.handleFileUpload(event)">
+            </div>
+            <div class="test-info" style="display: none;">
+                <p>Тест состоит из <span id="questionCountDisplay"></span> вопросов</p>
+                <p>Проходной балл: <span id="passingScoreDisplay"></span>%</p>
+            </div>
+            <div class="question-input-group" style="display: none;">
+                <label for="questionCount">Введите количество вопросов:</label>
+                <input type="number" id="questionCount" min="1">
+            </div>
+            <div class="timer-switch" style="display: none;">
+                <div class="timer-switch-wrapper">
+                    <label class="switch">
+                        <input type="checkbox" id="timerToggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="timer-label">Проходить тест с таймером</span>
+                </div>
+            </div>
+            <div class="timer-container" style="display: none;">
+                <div class="timer">00:00</div>
+                <div class="timer-label">Время на тест: 0 минут</div>
+            </div>
+            <button class="button" onclick="testApp.startTest()" style="display: none;">Начать тест</button>
+        </div>
+
+        <!-- Карточка с вопросами -->
+        <div id="questionCard" style="display: none;">
+            <h2 class="card-title"></h2>
+            <div class="timer-container">
+                <div class="timer">00:00</div>
+                <div class="timer-label">Осталось времени</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <p class="question-text"></p>
+            <div id="optionsContainer"></div>
+        </div>
+
+        <!-- Карточка с результатами -->
+        <div id="resultsCard" style="display: none;">
+            <h2 class="card-title">Результаты</h2>
+            <div class="results-summary"></div>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Вопрос</th>
+                        <th>Ваш ответ</th>
+                        <th>Правильный ответ</th>
+                        <th>Результат</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody"></tbody>
+            </table>
+            <button class="button" onclick="testApp.restartTest()">Начать заново</button>
+        </div>
+    </div>
 
     <script>
         class TestApp {
-            addTransitionEffect() {
-                const appContainer = document.getElementById('app');
-                appContainer.style.transition = 'opacity 0.5s ease';
-                appContainer.style.opacity = '0';
-                setTimeout(() => {
-                    appContainer.style.opacity = '1';
-                }, 500);
-            }
-
             constructor() {
                 this.questions = [];
                 this.currentQuestion = 0;
@@ -156,9 +1004,27 @@
                 this.app = document.getElementById('app');
                 this.passingScore = 50;
                 this.detailedResults = [];
-                this.questionCount = 40; // Количество вопросов по умолчанию
+                this.questionCount = 0;
+                this.isDarkTheme = false;
+                this.timeLimit = 0;
+                this.timer = null;
+                this.remainingTime = 0;
+                this.timerEnabled = true;
 
-                this.render();
+                this.updateInitialUI();
+
+                // Добавляем слушатели событий
+                const questionCountInput = document.getElementById('questionCount');
+                questionCountInput.addEventListener('input', () => this.updateTimer());
+
+                const timerToggle = document.getElementById('timerToggle');
+                if (timerToggle) {
+                    timerToggle.addEventListener('change', () => this.toggleTimer());
+                }
+            }
+
+            updateInitialUI() {
+                document.getElementById('passingScoreDisplay').textContent = this.passingScore;
             }
 
             handleFileUpload(event) {
@@ -179,17 +1045,52 @@
                         this.questions = jsonData.map((row, index) => ({
                             id: index + 1,
                             text: row.question,
-                            options: [row.option1, row.option2, row.option3, row.option4, row.option5].filter(option => option),
+                            options: [row.option1, row.option2, row.option3, row.option4, row.option5]
+                                .filter(option => option),
                             correctAnswer: parseInt(row.correct_answer) - 1
                         }));
 
-                        this.render();
+                        // Показываем необходимые элементы
+                        document.querySelector('.file-upload').style.display = 'none';
+                        document.querySelector('.test-info').style.display = 'block';
+                        document.querySelector('.question-input-group').style.display = 'block';
+                        document.querySelector('.timer-switch').style.display = 'block';
+                        document.querySelector('#setupCard .button').style.display = 'block';
+                        document.getElementById('questionCountDisplay').textContent = this.questions.length;
+
+                        // Инициализируем таймер
+                        this.toggleTimer();
+
                     } catch (error) {
-                        alert("Ошибка при чтении файла. Проверьте формат.");
+                        console.error("Ошибка при чтении файла:", error);
+                        alert("Ошибка при чтении файла. Проверьте формат файла.");
                     }
                 };
 
                 reader.readAsArrayBuffer(file);
+            }
+
+            toggleTimer() {
+                const timerToggle = document.getElementById('timerToggle');
+                this.timerEnabled = timerToggle.checked;
+                const timerContainer = document.querySelector('#setupCard .timer-container');
+                const timerLabel = document.querySelector('#setupCard .timer-label');
+                
+                if (this.timerEnabled) {
+                    timerContainer.style.display = 'block';
+                    this.updateTimer(); // Обновляем отображение таймера
+                    const questionCount = document.getElementById('questionCount').value;
+                    if (questionCount) {
+                        const minutes = parseInt(questionCount);
+                        document.querySelector('#setupCard .timer').textContent = 
+                            `${String(minutes).padStart(2, '0')}:00`;
+                        document.querySelector('#setupCard .timer-label').textContent = 
+                            `Время на тест: ${minutes} ${this.declOfNum(minutes, ['минута', 'минуты', 'минут'])}`;
+                    }
+                } else {
+                    timerContainer.style.display = 'none';
+                    timerLabel.textContent = 'Тест без таймера';
+                }
             }
 
             startTest() {
@@ -198,35 +1099,89 @@
 
                 if (!isNaN(selectedCount) && selectedCount > 0 && selectedCount <= this.questions.length) {
                     this.questionCount = selectedCount;
+                    this.testStarted = true;
+                    this.currentQuestion = 0;
+                    this.answers = {};
+                    this.detailedResults = [];
+                    this.shuffleQuestions();
+                    
+                    // Запускаем таймер только если он включен
+                    if (this.timerEnabled) {
+                        this.timeLimit = selectedCount;
+                        this.startTimer();
+                        // Показываем таймер
+                        document.querySelector('#questionCard .timer-container').style.display = 'block';
+                    } else {
+                        // Скрываем таймер
+                        document.querySelector('#questionCard .timer-container').style.display = 'none';
+                    }
+                    
+                    this.render();
+                    this.applyCurrentTheme();
                 } else {
                     alert(`Введите число от 1 до ${this.questions.length}`);
-                    return;
                 }
-
-                this.testStarted = true;
-                this.currentQuestion = 0;
-                this.answers = {};
-                this.detailedResults = [];
-                this.shuffleQuestions();
-                this.render();
             }
 
             restartTest() {
-                this.questions = []; // Сбрасываем вопросы
-                this.currentQuestion = 0; // Обнуляем текущий вопрос
-                this.answers = {}; // Очищаем ответы
-                this.testStarted = false; // Сбрасываем состояние теста
-                this.detailedResults = []; // Очищаем детальные результаты
-                this.render(); // Перерисовываем интерфейс
-            }
+                // Очищаем все состояния
+                this.questions = [];
+                this.currentQuestion = 0;
+                this.answers = {};
+                this.testStarted = false;
+                this.detailedResults = [];
+                this.timeLimit = 0;
+                this.remainingTime = 0;
+                
+                // Очищаем таймер
+                if (this.timer) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                }
+                
+                // Убираем подсветку
+                const appCard = document.getElementById('app');
+                appCard.classList.remove('success');
+                
+                // Сбрасываем отображение таймера
+                document.querySelectorAll('.timer').forEach(timer => {
+                    timer.classList.remove('timer-warning');
+                    timer.textContent = '00:00';
+                });
+                
+                // Сбрасываем input для загрузки файла
+                const fileInput = document.querySelector('input[type="file"]');
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+                
+                // Сбрасываем все элементы к начальному состоянию
+                const elements = {
+                    '.file-upload': 'block',
+                    '.test-info': 'none',
+                    '.question-input-group': 'none',
+                    '.timer-switch': 'none',
+                    '#setupCard .button': 'none',
+                    '#setupCard .timer-container': 'none'
+                };
 
+                // Применяем состояния отображения
+                Object.entries(elements).forEach(([selector, display]) => {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        element.style.display = display;
+                    }
+                });
+                
+                this.render();
+            }
 
             shuffleQuestions() {
                 for (let i = this.questions.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [this.questions[i], this.questions[j]] = [this.questions[j], this.questions[i]];
                 }
-                this.questions = this.questions.slice(0, this.questionCount); // Берём указанное количество вопросов
+                this.questions = this.questions.slice(0, this.questionCount);
             }
 
             handleAnswer(selectedOption) {
@@ -242,7 +1197,7 @@
                     isCorrect: isCorrect
                 });
 
-                const buttons = document.querySelectorAll('.button');
+                const buttons = document.querySelectorAll('#optionsContainer .button');
                 buttons.forEach((button, index) => {
                     button.disabled = true;
                     if (index === question.correctAnswer) {
@@ -265,6 +1220,9 @@
             }
 
             showResults() {
+                if (this.timer) {
+                    clearInterval(this.timer);
+                }
                 this.testStarted = false;
                 this.renderResults();
             }
@@ -286,90 +1244,222 @@
 
             render() {
                 if (!this.questions.length) {
-                    this.app.innerHTML = `
-                        <h2 class="card-title">Загрузка теста</h2>
-                        <div class="file-upload">
-                            <p>Загрузите Excel файл с вопросами</p>
-                            <br>
-                            <input type="file" accept=".xlsx,.xls" onchange="testApp.handleFileUpload(event)">
-                        </div>
-                    `;
+                    this.showCard('setupCard');
+                    document.querySelector('.file-upload').style.display = 'block';
+                    document.querySelector('.test-info').style.display = 'none';
+                    document.querySelector('.question-input-group').style.display = 'none';
+                    document.querySelector('.button').style.display = 'none';
                     return;
                 }
 
                 if (!this.testStarted) {
-                    this.app.innerHTML = `
-                        <h2 class="card-title">Система тестирования</h2>
-                        <p>Тест состоит из ${this.questionCount} вопросов</p>
-                        <p>Проходной балл: ${this.passingScore}%</p>
-                        <label for="questionCount">Введите количество вопросов:</label>
-                        <input type="number" id="questionCount" min="1" max="${this.questions.length}" value="${this.questionCount}">
-                        <button class="button" onclick="testApp.startTest()">Начать тест</button>
-                    `;
+                    this.showCard('setupCard');
+                    document.querySelector('.file-upload').style.display = 'none';
+                    document.querySelector('.test-info').style.display = 'block';
+                    document.querySelector('.question-input-group').style.display = 'block';
+                    document.querySelector('.button').style.display = 'block';
+                    document.getElementById('questionCountDisplay').textContent = this.questionCount;
                     return;
                 }
 
+                this.showCard('questionCard');
                 const question = this.questions[this.currentQuestion];
                 const progress = ((this.currentQuestion + 1) / this.questions.length) * 100;
 
-                this.app.innerHTML = `
-                    <h2 class="card-title">Вопрос ${this.currentQuestion + 1} из ${this.questions.length}</h2>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${progress}%"></div>
-                    </div>
-                    <p class="question-text">${question.text}</p>
-                    ${question.options.map((option, index) => 
-                        option ? `<button class="button" onclick="testApp.handleAnswer(${index})">${option}</button>` : ''
-                    ).join('')}
-                `;
+                document.querySelector('#questionCard .card-title').textContent = 
+                    `Вопрос ${this.currentQuestion + 1} из ${this.questions.length}`;
+                
+                // Показываем/скрываем таймер в зависимости от настройки
+                const timerContainer = document.querySelector('#questionCard .timer-container');
+                if (timerContainer) {
+                    timerContainer.style.display = this.timerEnabled ? 'block' : 'none';
+                }
+
+                document.querySelector('.progress-fill').style.width = `${progress}%`;
+                document.querySelector('.question-text').textContent = question.text;
+
+                const optionsContainer = document.getElementById('optionsContainer');
+                optionsContainer.innerHTML = question.options.map((option, index) => 
+                    option ? `<button class="button" onclick="testApp.handleAnswer(${index})">${option}</button>` : ''
+                ).join('');
+
+                this.applyCurrentTheme();
             }
 
             renderResults() {
                 const results = this.calculateResults();
-            
-                let detailedResultsHTML = `
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                <th>№</th>
-                                <th>Вопрос</th>
-                                <th>Ваш ответ</th>
-                                <th>Правильный ответ</th>
-                                <th>Результат</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                this.showCard('resultsCard');
+                
+                const resultsSummary = document.querySelector('.results-summary');
+                resultsSummary.innerHTML = `
+                    <p>Ваш результат: <strong>${results.score}%</strong></p>
+                    <p>${results.passed ? 'Тест успешно пройден!' : 'Тест не пройден.'}</p>
+                    <p>Правильных ответов: ${results.correctCount}</p>
+                    <p>Неправильных ответов: ${results.incorrectCount}</p>
+                    <p>Времени осталось: ${this.formatTime(this.remainingTime)}</p>
                 `;
-            
-                this.detailedResults.forEach(result => {
-                    detailedResultsHTML += `
-                        <tr>
-                            <td>${result.questionNumber}</td>
-                            <td>${result.question}</td>
-                            <td>${result.yourAnswer || 'Не отвечено'}</td>
-                            <td>${result.correctAnswer}</td>
-                            <td style="color: ${result.isCorrect ? 'green' : 'red'};">
-                                ${result.isCorrect ? 'Правильно ✅' : 'Неправильно ❌'}
-                            </td>
-                        </tr>
-                    `;
-                });
-            
-                detailedResultsHTML += `</tbody></table>`;
-            
-                this.app.innerHTML = `
-                    <h2 class="card-title">Результаты тестирования</h2>
-                    <div class="results-summary">
-                        <p>Ваш результат: <strong>${results.score}%</strong></p>
-                        <p>${results.passed ? 'Тест успешно пройден!' : 'Тест не пройден.'}</p>
-                        <p>Правильных ответов: ${results.correctCount}</p>
-                        <p>Неправильных ответов: ${results.incorrectCount}</p>
-                    </div>
-                    ${detailedResultsHTML}
-                    <button class="button" onclick="testApp.restartTest()">Начать заново</button>
-                `;
+
+                if (parseFloat(results.score) >= 50) {
+                    this.celebrateSuccess();
+                }
+
+                const resultsTableBody = document.getElementById('resultsTableBody');
+                resultsTableBody.innerHTML = this.detailedResults.map(result => `
+                    <tr>
+                        <td>${result.questionNumber}</td>
+                        <td>${result.question}</td>
+                        <td>${result.yourAnswer || 'Не отвечено'}</td>
+                        <td>${result.correctAnswer}</td>
+                        <td style="color: ${result.isCorrect ? 'green' : 'red'};">
+                            ${result.isCorrect ? 'Правильно ✅' : 'Неправильно ❌'}
+                        </td>
+                    </tr>
+                `).join('');
             }
 
+            celebrateSuccess() {
+                const duration = 3000;
+                const animationEnd = Date.now() + duration;
+                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+                function randomInRange(min, max) {
+                    return Math.random() * (max - min) + min;
+                }
+
+                const interval = setInterval(function() {
+                    const timeLeft = animationEnd - Date.now();
+
+                    if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                    }
+
+                    const particleCount = 50 * (timeLeft / duration);
+                    
+                    confetti({
+                        ...defaults,
+                        particleCount,
+                        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                    });
+                    confetti({
+                        ...defaults,
+                        particleCount,
+                        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                    });
+                }, 250);
+
+                const appCard = document.getElementById('app');
+                appCard.classList.add('success');
+            }
+
+            toggleTheme() {
+                this.isDarkTheme = !this.isDarkTheme;
+                this.applyCurrentTheme();
+
+                const themeToggle = document.querySelector('.theme-toggle');
+                themeToggle.textContent = this.isDarkTheme ? '🌞' : '🌜';
+            }
+
+            applyCurrentTheme() {
+                const darkClass = this.isDarkTheme;
+                document.body.classList.toggle('dark', darkClass);
+                document.querySelector('.card').classList.toggle('dark', darkClass);
+                
+                // Обновляем все заголовки card-title
+                document.querySelectorAll('.card-title').forEach(title => {
+                    title.classList.toggle('dark', darkClass);
+                });
+                
+                document.querySelector('.question-text')?.classList.toggle('dark', darkClass);
+                document.querySelectorAll('.button').forEach(button => button.classList.toggle('dark', darkClass));
+                document.querySelector('.progress-bar')?.classList.toggle('dark', darkClass);
+                document.querySelector('.progress-fill')?.classList.toggle('dark', darkClass);
+                document.querySelector('.results-summary')?.classList.toggle('dark', darkClass);
+                document.querySelectorAll('.results-table th').forEach(th => th.classList.toggle('dark', darkClass));
+                document.querySelectorAll('.results-table tr:nth-child(even)').forEach(tr => tr.classList.toggle('dark', darkClass));
+                document.querySelector('.test-info')?.classList.toggle('dark', darkClass);
+                document.querySelector('.question-input-group')?.classList.toggle('dark', darkClass);
+                document.querySelector('.results-table')?.classList.toggle('dark', this.isDarkTheme);
+                document.querySelectorAll('.results-table th, .results-table td').forEach(cell => cell.classList.toggle('dark', this.isDarkTheme));
+                document.querySelector('.theme-toggle').classList.toggle('dark', this.isDarkTheme);
+                document.querySelector('.file-upload')?.classList.toggle('dark', this.isDarkTheme);
+                document.querySelector('.timer-container')?.classList.toggle('dark', darkClass);
+                document.querySelector('.timer')?.classList.toggle('dark', darkClass);
+                document.querySelector('.timer-label')?.classList.toggle('dark', darkClass);
+                document.querySelector('.theme-tooltip')?.classList.toggle('dark', darkClass);
+                document.querySelector('.timer-switch')?.classList.toggle('dark', this.isDarkTheme);
+            }
+
+            showCard(cardId) {
+                ['setupCard', 'questionCard', 'resultsCard'].forEach(id => {
+                    const card = document.getElementById(id);
+                    if (card) {
+                        if (id === cardId) {
+                            card.style.display = 'block';
+                            setTimeout(() => card.classList.remove('hidden'), 50);
+                        } else {
+                            card.classList.add('hidden');
+                            setTimeout(() => card.style.display = 'none', 300);
+                        }
+                    }
+                });
+            }
+
+            startTimer() {
+                this.remainingTime = this.timeLimit * 60; // конвертируем в секунды
+                this.updateTimerDisplay();
+                
+                this.timer = setInterval(() => {
+                    this.remainingTime--;
+                    this.updateTimerDisplay();
+                    
+                    if (this.remainingTime <= 60) { // последняя минута
+                        document.querySelectorAll('.timer').forEach(timer => {
+                            timer.classList.add('timer-warning');
+                        });
+                    }
+                    
+                    if (this.remainingTime <= 0) {
+                        clearInterval(this.timer);
+                        this.showResults();
+                    }
+                }, 1000);
+            }
+
+            updateTimerDisplay() {
+                const minutes = Math.floor(this.remainingTime / 60);
+                const seconds = this.remainingTime % 60;
+                const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                
+                document.querySelectorAll('.timer').forEach(timer => {
+                    timer.textContent = display;
+                });
+            }
+
+            formatTime(seconds) {
+                if (seconds <= 0) return "Время истекло";
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes} ${this.declOfNum(minutes, ['минута', 'минуты', 'минут'])} ` +
+                       `${remainingSeconds} ${this.declOfNum(remainingSeconds, ['секунда', 'секунды', 'секунд'])}`;
+            }
+
+            declOfNum(number, words) {
+                const cases = [2, 0, 1, 1, 1, 2];
+                return words[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
+            }
+
+            updateTimer() {
+                if (!this.timerEnabled) return;
+                
+                const questionCount = document.getElementById('questionCount').value;
+                if (questionCount) {
+                    const minutes = parseInt(questionCount);
+                    document.querySelector('#setupCard .timer').textContent = 
+                        `${String(minutes).padStart(2, '0')}:00`;
+                    document.querySelector('#setupCard .timer-label').textContent = 
+                        `Время на тест: ${minutes} ${this.declOfNum(minutes, ['минута', 'минуты', 'минут'])}`;
+                }
+            }
         }
 
         const testApp = new TestApp();
