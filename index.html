@@ -920,6 +920,95 @@
             justify-content: center;
             gap: 15px;
         }
+
+        .range-inputs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            flex: 1;
+        }
+
+        .input-field label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .test-mode-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0,0,0,0.03);
+            border-radius: 8px;
+        }
+
+        .mode-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .mode-options {
+            display: flex;
+            gap: 20px;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-label input[type="radio"] {
+            cursor: pointer;
+        }
+
+        /* Стили для темной темы */
+        .dark .test-mode-container {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .dark .input-field input {
+            background: #333;
+            color: white;
+            border-color: #555;
+        }
+
+        .input-field {
+            margin-bottom: 20px;
+        }
+
+        #randomInputs {
+            margin-bottom: 20px;
+        }
+
+        #randomInputs .input-field {
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .dark .input-field input {
+            background: #333;
+            color: white;
+            border-color: #555;
+        }
     </style>
 </head>
 <body>
@@ -941,11 +1030,43 @@
                 <p>Проходной балл: <span id="passingScoreDisplay"></span>%</p>
             </div>
             <div class="question-input-group" style="display: none;">
-                <label for="questionCount">Введите количество вопросов:</label>
-                <input type="number" id="questionCount" min="1">
-            </div>
-            <div class="timer-switch" style="display: none;">
-                <div class="timer-switch-wrapper">
+                <!-- Поля для последовательного режима -->
+                <div id="sequentialInputs">
+                    <div class="range-inputs">
+                        <div class="input-field">
+                            <label for="minQuestionCount">Начать с вопроса:</label>
+                            <input type="number" id="minQuestionCount" min="1">
+                        </div>
+                        <div class="input-field">
+                            <label for="maxQuestionCount">Закончить вопросом:</label>
+                            <input type="number" id="maxQuestionCount" min="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Поле для случайного режима -->
+                <div id="randomInputs" style="display: none;">
+                    <div class="input-field">
+                        <label for="randomQuestionCount">Количество вопросов:</label>
+                        <input type="number" id="randomQuestionCount" min="1">
+                    </div>
+                </div>
+
+                <div class="test-mode-container">
+                    <label class="mode-label">Способ прохождения теста:</label>
+                    <div class="mode-options">
+                        <label class="radio-label">
+                            <input type="radio" name="testMode" value="sequential" checked>
+                            Последовательный
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="testMode" value="random">
+                            Случайный
+                        </label>
+                    </div>
+                </div>
+
+                <div class="timer-switch">
                     <label class="switch">
                         <input type="checkbox" id="timerToggle" checked>
                         <span class="slider round"></span>
@@ -1010,16 +1131,49 @@
                 this.timer = null;
                 this.remainingTime = 0;
                 this.timerEnabled = true;
+                this.isRandomMode = false;
 
                 this.updateInitialUI();
 
                 // Добавляем слушатели событий
-                const questionCountInput = document.getElementById('questionCount');
-                questionCountInput.addEventListener('input', () => this.updateTimer());
+                this.initializeEventListeners();
+            }
 
+            initializeEventListeners() {
+                const minQuestionCount = document.getElementById('minQuestionCount');
+                const maxQuestionCount = document.getElementById('maxQuestionCount');
+                const testModeInputs = document.getElementsByName('testMode');
                 const timerToggle = document.getElementById('timerToggle');
-                if (timerToggle) {
-                    timerToggle.addEventListener('change', () => this.toggleTimer());
+
+                minQuestionCount?.addEventListener('input', () => this.validateQuestionRange());
+                maxQuestionCount?.addEventListener('input', () => this.validateQuestionRange());
+                
+                testModeInputs.forEach(input => {
+                    input.addEventListener('change', (e) => {
+                        this.isRandomMode = e.target.value === 'random';
+                        this.toggleInputMode();
+                    });
+                });
+
+                timerToggle?.addEventListener('change', () => this.toggleTimer());
+            }
+
+            validateQuestionRange() {
+                const minInput = document.getElementById('minQuestionCount');
+                const maxInput = document.getElementById('maxQuestionCount');
+                const min = parseInt(minInput.value);
+                const max = parseInt(maxInput.value);
+
+                if (min && max) {
+                    if (min > max) {
+                        maxInput.value = min;
+                    }
+                    if (max > this.questions.length) {
+                        maxInput.value = this.questions.length;
+                    }
+                    if (min < 1) {
+                        minInput.value = 1;
+                    }
                 }
             }
 
@@ -1050,19 +1204,26 @@
                             correctAnswer: parseInt(row.correct_answer) - 1
                         }));
 
-                        // Показываем необходимые элементы
-                        document.querySelector('.file-upload').style.display = 'none';
-                        document.querySelector('.test-info').style.display = 'block';
-                        document.querySelector('.question-input-group').style.display = 'block';
-                        document.querySelector('.timer-switch').style.display = 'block';
-                        document.querySelector('#setupCard .button').style.display = 'block';
-                        document.getElementById('questionCountDisplay').textContent = this.questions.length;
+                        // Обновляем интерфейс только после успешной загрузки данных
+                        const elements = {
+                            fileUpload: document.querySelector('.file-upload'),
+                            testInfo: document.querySelector('.test-info'),
+                            questionInputGroup: document.querySelector('.question-input-group'),
+                            setupButton: document.querySelector('#setupCard .button'),
+                            questionCountDisplay: document.getElementById('questionCountDisplay')
+                        };
 
-                        // Инициализируем таймер
-                        this.toggleTimer();
+                        if (elements.fileUpload) elements.fileUpload.style.display = 'none';
+                        if (elements.testInfo) elements.testInfo.style.display = 'block';
+                        if (elements.questionInputGroup) elements.questionInputGroup.style.display = 'block';
+                        if (elements.setupButton) elements.setupButton.style.display = 'block';
+                        if (elements.questionCountDisplay) elements.questionCountDisplay.textContent = this.questions.length;
+
+                        // Инициализируем поля ввода
+                        this.toggleInputMode();
 
                     } catch (error) {
-                        console.error("Ошибка при чтении файла:", error);
+                        console.error("Ошибка при обработке файла:", error);
                         alert("Ошибка при чтении файла. Проверьте формат файла.");
                     }
                 };
@@ -1094,116 +1255,56 @@
             }
 
             startTest() {
-                const questionCountInput = document.getElementById('questionCount');
-                const selectedCount = parseInt(questionCountInput.value);
-
-                if (!isNaN(selectedCount) && selectedCount > 0 && selectedCount <= this.questions.length) {
-                    this.questionCount = selectedCount;
-                    this.testStarted = true;
-                    this.currentQuestion = 0;
-                    this.answers = {};
-                    this.detailedResults = [];
-                    this.shuffleQuestions();
-                    
-                    // Запускаем таймер только если он включен
-                    if (this.timerEnabled) {
-                        this.timeLimit = selectedCount;
-                        this.startTimer();
-                        // Показываем таймер
-                        document.querySelector('#questionCard .timer-container').style.display = 'block';
-                    } else {
-                        // Скрываем таймер
-                        document.querySelector('#questionCard .timer-container').style.display = 'none';
+                let selectedQuestions;
+                
+                if (this.isRandomMode) {
+                    const count = parseInt(document.getElementById('randomQuestionCount')?.value || 0);
+                    if (isNaN(count) || count < 1 || count > this.questions.length) {
+                        alert(`Введите корректное количество вопросов от 1 до ${this.questions.length}`);
+                        return;
                     }
-                    
-                    this.render();
-                    this.applyCurrentTheme();
+                    // Случайный выбор вопросов
+                    selectedQuestions = this.shuffleArray([...this.questions]).slice(0, count);
                 } else {
-                    alert(`Введите число от 1 до ${this.questions.length}`);
+                    const minCount = parseInt(document.getElementById('minQuestionCount')?.value || 0);
+                    const maxCount = parseInt(document.getElementById('maxQuestionCount')?.value || 0);
+                    
+                    if (!isNaN(minCount) && !isNaN(maxCount) && 
+                        minCount > 0 && maxCount >= minCount && 
+                        maxCount <= this.questions.length) {
+                        // Последовательный выбор вопросов
+                        selectedQuestions = this.questions.slice(minCount - 1, maxCount);
+                    } else {
+                        alert(`Введите корректный диапазон от 1 до ${this.questions.length}`);
+                        return;
+                    }
                 }
-            }
 
-            restartTest() {
-                // Очищаем все состояния
-                this.questions = [];
+                this.questions = selectedQuestions;
+                this.questionCount = this.questions.length;
+                this.testStarted = true;
                 this.currentQuestion = 0;
                 this.answers = {};
-                this.testStarted = false;
                 this.detailedResults = [];
-                this.timeLimit = 0;
-                this.remainingTime = 0;
-                
-                // Очищаем таймер
-                if (this.timer) {
-                    clearInterval(this.timer);
-                    this.timer = null;
-                }
-                
-                // Убираем подсветку
-                const appCard = document.getElementById('app');
-                appCard.classList.remove('success');
-                
-                // Сбрасываем отображение таймера
-                document.querySelectorAll('.timer').forEach(timer => {
-                    timer.classList.remove('timer-warning');
-                    timer.textContent = '00:00';
-                });
-                
-                // Сбрасываем input для загрузки файла
-                const fileInput = document.querySelector('input[type="file"]');
-                if (fileInput) {
-                    fileInput.value = '';
-                }
-                
-                // Сбрасываем все элементы к начальному состоянию
-                const elements = {
-                    '.file-upload': 'block',
-                    '.test-info': 'none',
-                    '.question-input-group': 'none',
-                    '.timer-switch': 'none',
-                    '#setupCard .button': 'none',
-                    '#setupCard .timer-container': 'none'
-                };
 
-                // Применяем состояния отображения
-                Object.entries(elements).forEach(([selector, display]) => {
-                    const element = document.querySelector(selector);
-                    if (element) {
-                        element.style.display = display;
-                    }
-                });
-                
+                if (this.timerEnabled) {
+                    this.timeLimit = this.questionCount;
+                    this.startTimer();
+                    document.querySelector('#questionCard .timer-container').style.display = 'block';
+                } else {
+                    document.querySelector('#questionCard .timer-container').style.display = 'none';
+                }
+
                 this.render();
+                this.applyCurrentTheme();
             }
 
-            shuffleQuestions() {
-                // Первое перемешивание
-                for (let i = this.questions.length - 1; i > 0; i--) {
+            shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
-                    [this.questions[i], this.questions[j]] = [this.questions[j], this.questions[i]];
+                    [array[i], array[j]] = [array[j], array[i]];
                 }
-                
-                // Второе перемешивание с другим алгоритмом
-                for (let i = 0; i < this.questions.length; i++) {
-                    const j = Math.floor(Math.random() * this.questions.length);
-                    [this.questions[i], this.questions[j]] = [this.questions[j], this.questions[i]];
-                    
-                    // Дополнительно перемешиваем варианты ответов для каждого вопроса
-                    const question = this.questions[i];
-                    const correctOption = question.options[question.correctAnswer];
-                    
-                    // Перемешиваем варианты ответов
-                    for (let k = question.options.length - 1; k > 0; k--) {
-                        const l = Math.floor(Math.random() * (k + 1));
-                        [question.options[k], question.options[l]] = [question.options[l], question.options[k]];
-                    }
-                    
-                    // Обновляем индекс правильного ответа
-                    question.correctAnswer = question.options.indexOf(correctOption);
-                }
-                
-                // Обрезаем массив до нужного количества вопросов
-                this.questions = this.questions.slice(0, this.questionCount);
+                return array;
             }
 
             handleAnswer(selectedOption) {
@@ -1481,6 +1582,89 @@
                     document.querySelector('#setupCard .timer-label').textContent = 
                         `Время на тест: ${minutes} ${this.declOfNum(minutes, ['минута', 'минуты', 'минут'])}`;
                 }
+            }
+
+            toggleInputMode() {
+                const sequentialInputs = document.getElementById('sequentialInputs');
+                const randomInputs = document.getElementById('randomInputs');
+                const randomQuestionCount = document.getElementById('randomQuestionCount');
+                const minQuestionCount = document.getElementById('minQuestionCount');
+                const maxQuestionCount = document.getElementById('maxQuestionCount');
+
+                if (!sequentialInputs || !randomInputs) return;
+
+                if (this.isRandomMode) {
+                    sequentialInputs.style.display = 'none';
+                    randomInputs.style.display = 'block';
+                    if (randomQuestionCount && this.questions.length) {
+                        randomQuestionCount.value = Math.min(this.questions.length, 10).toString();
+                        randomQuestionCount.max = this.questions.length.toString();
+                    }
+                } else {
+                    sequentialInputs.style.display = 'block';
+                    randomInputs.style.display = 'none';
+                    if (minQuestionCount && maxQuestionCount && this.questions.length) {
+                        minQuestionCount.value = '1';
+                        maxQuestionCount.value = this.questions.length.toString();
+                        minQuestionCount.max = this.questions.length.toString();
+                        maxQuestionCount.max = this.questions.length.toString();
+                    }
+                }
+            }
+
+            restartTest() {
+                // Сбрасываем все значения
+                this.questions = [];
+                this.currentQuestion = 0;
+                this.answers = {};
+                this.testStarted = false;
+                this.detailedResults = [];
+                this.timeLimit = 0;
+                this.remainingTime = 0;
+                
+                // Очищаем таймер если он есть
+                if (this.timer) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                }
+
+                // Убираем свечение
+                const appCard = document.getElementById('app');
+                if (appCard) {
+                    appCard.classList.remove('success');
+                }
+
+                // Очищаем поля ввода
+                const inputs = ['minQuestionCount', 'maxQuestionCount', 'randomQuestionCount'];
+                inputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input) input.value = '';
+                });
+
+                // Сбрасываем файл
+                const fileInput = document.querySelector('input[type="file"]');
+                if (fileInput) fileInput.value = '';
+
+                // Показываем начальный экран
+                this.showCard('setupCard');
+
+                // Возвращаем элементы к исходному состоянию
+                const elements = {
+                    fileUpload: document.querySelector('.file-upload'),
+                    testInfo: document.querySelector('.test-info'),
+                    questionInputGroup: document.querySelector('.question-input-group'),
+                    setupButton: document.querySelector('#setupCard .button'),
+                    timerContainer: document.querySelector('#setupCard .timer-container')
+                };
+
+                if (elements.fileUpload) elements.fileUpload.style.display = 'block';
+                if (elements.testInfo) elements.testInfo.style.display = 'none';
+                if (elements.questionInputGroup) elements.questionInputGroup.style.display = 'none';
+                if (elements.setupButton) elements.setupButton.style.display = 'none';
+                if (elements.timerContainer) elements.timerContainer.style.display = 'none';
+
+                // Обновляем UI
+                this.render();
             }
         }
 
