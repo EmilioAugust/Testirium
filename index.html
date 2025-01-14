@@ -1177,10 +1177,32 @@
             }
 
             shuffleQuestions() {
+                // Первое перемешивание
                 for (let i = this.questions.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [this.questions[i], this.questions[j]] = [this.questions[j], this.questions[i]];
                 }
+                
+                // Второе перемешивание с другим алгоритмом
+                for (let i = 0; i < this.questions.length; i++) {
+                    const j = Math.floor(Math.random() * this.questions.length);
+                    [this.questions[i], this.questions[j]] = [this.questions[j], this.questions[i]];
+                    
+                    // Дополнительно перемешиваем варианты ответов для каждого вопроса
+                    const question = this.questions[i];
+                    const correctOption = question.options[question.correctAnswer];
+                    
+                    // Перемешиваем варианты ответов
+                    for (let k = question.options.length - 1; k > 0; k--) {
+                        const l = Math.floor(Math.random() * (k + 1));
+                        [question.options[k], question.options[l]] = [question.options[l], question.options[k]];
+                    }
+                    
+                    // Обновляем индекс правильного ответа
+                    question.correctAnswer = question.options.indexOf(correctOption);
+                }
+                
+                // Обрезаем массив до нужного количества вопросов
                 this.questions = this.questions.slice(0, this.questionCount);
             }
 
