@@ -1114,6 +1114,36 @@
                 padding: 10px;
             }
         }
+
+        /* Специальные стили только для iPad */
+        @media only screen 
+        and (min-device-width: 768px) 
+        and (max-device-width: 1024px) 
+        and (-webkit-min-device-pixel-ratio: 1) {
+            #resultsCard {
+                position: relative;
+                z-index: 999;
+                background: #1e1e1e;
+            }
+
+            .results-summary,
+            .results-table {
+                position: relative;
+                z-index: 1000;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+
+            .results-table {
+                width: 100% !important;
+                margin: 20px 0 !important;
+            }
+
+            .card {
+                overflow: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+        }
     </style>
 </head>
 <body>
