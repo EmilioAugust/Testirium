@@ -1009,6 +1009,111 @@
             color: white;
             border-color: #555;
         }
+
+        /* Медиа-запросы для мобильных устройств */
+        @media screen and (max-width: 768px) {
+            .card {
+                width: 95%;
+                padding: 15px;
+                margin: 10px auto;
+            }
+
+            .card-title {
+                font-size: 1.5em;
+                margin-bottom: 15px;
+            }
+
+            .results-table {
+                font-size: 14px;
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 8px;
+                min-width: 100px;
+            }
+
+            .results-table th:first-child,
+            .results-table td:first-child {
+                min-width: 40px;
+            }
+
+            .results-summary {
+                font-size: 14px;
+                margin: 10px 0;
+            }
+
+            .button {
+                width: 100%;
+                padding: 12px;
+                font-size: 16px;
+                margin: 10px 0;
+            }
+
+            .question-text {
+                font-size: 16px;
+                line-height: 1.4;
+            }
+
+            #optionsContainer .button {
+                margin: 8px 0;
+            }
+
+            .timer {
+                font-size: 24px;
+            }
+
+            .timer-label {
+                font-size: 14px;
+            }
+
+            .progress-bar {
+                margin: 10px 0;
+            }
+
+            .mode-options {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .range-inputs {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .input-field {
+                width: 100%;
+            }
+        }
+
+        /* Дополнительные стили для очень маленьких экранов */
+        @media screen and (max-width: 480px) {
+            .card-title {
+                font-size: 1.2em;
+            }
+
+            .results-table {
+                font-size: 12px;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 6px;
+                min-width: 80px;
+            }
+
+            .results-summary {
+                font-size: 13px;
+            }
+
+            .button {
+                font-size: 14px;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
