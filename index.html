@@ -344,12 +344,14 @@
         .results-table.dark {
             border-color: #444;
             color: #ffffff;
+            background-color: #1e1e1e;
         }
 
         .results-table.dark th,
         .results-table.dark td {
             border-color: #444;
             color: #ffffff;
+            background-color: #1e1e1e;
         }
 
         .results-table.dark th {
@@ -1144,6 +1146,46 @@
                 -webkit-overflow-scrolling: touch !important;
             }
         }
+
+        /* Обновляем стили для темной темы в таблице результатов */
+        .results-table.dark {
+            border-color: #444;
+            color: #ffffff;
+            background-color: #1e1e1e;
+        }
+
+        .results-table.dark th,
+        .results-table.dark td {
+            border-color: #444;
+            color: #ffffff;
+            background-color: #1e1e1e;
+        }
+
+        .results-table.dark th {
+            background-color: #333;
+        }
+
+        .results-table.dark tr:nth-child(even) {
+            background-color: #2c2c2c;
+        }
+
+        .results-table.dark tr:nth-child(odd) {
+            background-color: #1e1e1e;
+        }
+
+        /* Обновляем стили для результатов в темной теме */
+        .results-summary.dark {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+
+        .results-summary.dark p {
+            color: #ffffff !important;
+        }
+
+        .results-summary.dark strong {
+            color: #76ff03;
+        }
     </style>
 </head>
 <body>
@@ -1323,6 +1365,20 @@
                     return;
                 }
 
+                // Проверяем тип файла
+                const fileType = file.type || '';
+                const validTypes = [
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/vnd.ms-excel',
+                    'application/octet-stream'  // Добавляем для поддержки мобильных устройств
+                ];
+                
+                if (!validTypes.includes(fileType) && 
+                    !file.name.match(/\.(xlsx|xls)$/i)) {
+                    alert("Пожалуйста, выберите Excel файл (.xlsx или .xls)");
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     try {
@@ -1330,6 +1386,10 @@
                         const workbook = XLSX.read(data, { type: 'array' });
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                         const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                        if (!jsonData || jsonData.length === 0) {
+                            throw new Error("Файл пуст или имеет неверный формат");
+                        }
 
                         this.questions = jsonData.map((row, index) => ({
                             id: index + 1,
@@ -1339,31 +1399,42 @@
                             correctAnswer: parseInt(row.correct_answer) - 1
                         }));
 
-                        // Обновляем интерфейс только после успешной загрузки данных
-                        const elements = {
-                            fileUpload: document.querySelector('.file-upload'),
-                            testInfo: document.querySelector('.test-info'),
-                            questionInputGroup: document.querySelector('.question-input-group'),
-                            setupButton: document.querySelector('#setupCard .button'),
-                            questionCountDisplay: document.getElementById('questionCountDisplay')
-                        };
+                        // Проверяем корректность данных
+                        if (!this.questions.every(q => q.text && q.options.length > 0 && !isNaN(q.correctAnswer))) {
+                            throw new Error("Некорректный формат данных в файле");
+                        }
 
-                        if (elements.fileUpload) elements.fileUpload.style.display = 'none';
-                        if (elements.testInfo) elements.testInfo.style.display = 'block';
-                        if (elements.questionInputGroup) elements.questionInputGroup.style.display = 'block';
-                        if (elements.setupButton) elements.setupButton.style.display = 'block';
-                        if (elements.questionCountDisplay) elements.questionCountDisplay.textContent = this.questions.length;
-
-                        // Инициализируем поля ввода
-                        this.toggleInputMode();
-
+                        this.updateUIAfterFileLoad();
                     } catch (error) {
                         console.error("Ошибка при обработке файла:", error);
                         alert("Ошибка при чтении файла. Проверьте формат файла.");
                     }
                 };
 
+                reader.onerror = () => {
+                    alert("Ошибка при чтении файла");
+                };
+
                 reader.readAsArrayBuffer(file);
+            }
+
+            updateUIAfterFileLoad() {
+                const elements = {
+                    fileUpload: document.querySelector('.file-upload'),
+                    testInfo: document.querySelector('.test-info'),
+                    questionInputGroup: document.querySelector('.question-input-group'),
+                    setupButton: document.querySelector('#setupCard .button'),
+                    questionCountDisplay: document.getElementById('questionCountDisplay')
+                };
+
+                if (elements.fileUpload) elements.fileUpload.style.display = 'none';
+                if (elements.testInfo) elements.testInfo.style.display = 'block';
+                if (elements.questionInputGroup) elements.questionInputGroup.style.display = 'block';
+                if (elements.setupButton) elements.setupButton.style.display = 'block';
+                if (elements.questionCountDisplay) elements.questionCountDisplay.textContent = this.questions.length;
+
+                // Инициализируем поля ввода
+                this.toggleInputMode();
             }
 
             toggleTimer() {
@@ -1482,7 +1553,22 @@
                     clearInterval(this.timer);
                 }
                 this.testStarted = false;
+
+                // Принудительно показываем карточку с результатами
+                const resultsCard = document.getElementById('resultsCard');
+                if (resultsCard) {
+                    resultsCard.style.display = 'block';
+                    resultsCard.classList.remove('hidden');
+                }
+
+                // Скрываем другие карточки
+                const setupCard = document.getElementById('setupCard');
+                const questionCard = document.getElementById('questionCard');
+                if (setupCard) setupCard.style.display = 'none';
+                if (questionCard) questionCard.style.display = 'none';
+
                 this.renderResults();
+                this.applyCurrentTheme();
             }
 
             calculateResults() {
@@ -1645,6 +1731,27 @@
                 document.querySelector('.timer-label')?.classList.toggle('dark', darkClass);
                 document.querySelector('.theme-tooltip')?.classList.toggle('dark', darkClass);
                 document.querySelector('.timer-switch')?.classList.toggle('dark', this.isDarkTheme);
+
+                // Добавляем обработку таблицы результатов
+                const resultsTable = document.querySelector('.results-table');
+                if (resultsTable) {
+                    resultsTable.classList.toggle('dark', darkClass);
+                    resultsTable.querySelectorAll('th, td').forEach(cell => {
+                        cell.classList.toggle('dark', darkClass);
+                    });
+                    resultsTable.querySelectorAll('tr').forEach(row => {
+                        row.classList.toggle('dark', darkClass);
+                    });
+                }
+
+                // Обновляем стили для результатов
+                const resultsSummary = document.querySelector('.results-summary');
+                if (resultsSummary) {
+                    resultsSummary.classList.toggle('dark', darkClass);
+                    resultsSummary.querySelectorAll('p').forEach(p => {
+                        p.classList.toggle('dark', darkClass);
+                    });
+                }
             }
 
             showCard(cardId) {
